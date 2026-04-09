@@ -1,102 +1,18 @@
 import React, { useState } from "react";
 import "../styles/interview.scss";
+import { useInteview } from "../hooks/useInterview";
+import { useParams } from 'react-router'
 
 const Interview = () => {
-    // Sample data - will be replaced with API call
-    const interviewData = {
-        matchScore: 88,
-        technicalQuestions: [
-            {
-                question: "Describe your approach to architecting a modular component library. How do you ensure reusability, maintainability, and scalability across multiple products?",
-                intention: "To assess the candidate's understanding of scalable frontend architecture, design patterns, and practical experience in building reusable UI systems.",
-                answer: "Discuss principles of modular design, such as single responsibility, separation of concerns, and reusability. Explain how you would structure the library (e.g., atomic design principles), use tools like Storybook for documentation and isolated development, implement robust testing (unit, integration), and ensure type safety with TypeScript."
-            },
-            {
-                question: "You mentioned improving load speeds by 1.2s. Can you elaborate on the specific techniques you used to achieve this?",
-                intention: "To evaluate the candidate's practical experience and in-depth knowledge of web performance optimization techniques.",
-                answer: "Elaborate on specific techniques used, such as code splitting, memoization, image optimization, and virtualized lists."
-            }
-        ],
-        behavioralQuestions: [
-            {
-                question: "Tell me about your experience mentoring junior developers. What challenges did you face?",
-                intention: "To evaluate the candidate's leadership skills, ability to guide and develop team members.",
-                answer: "Use the STAR method. Describe specific instances where you mentored junior developers, outlining the situation, tasks involved, actions taken, and positive results."
-            },
-            {
-                question: "Describe a complex technical challenge you faced while building a web application.",
-                intention: "To assess the candidate's problem-solving skills and ability to handle technical complexity.",
-                answer: "Use the STAR method. Describe a complex technical challenge, detail the situation, the specific problem, and the final outcome."
-            }
-        ],
-        skillGaps: [
-            { skill: "Message Queues\n(Kafka/RabbitMQ)", severity: "medium" },
-            { skill: "Advanced Docker & CI/CD\nPipelines", severity: "medium" },
-            { skill: "Distributed Systems Design", severity: "medium" },
-            { skill: "Production-level Redis\nmanagement", severity: "low" }
-        ],
-        preparationPlan: [
-            {
-                day: 1,
-                focus: "Node.js Internals & Streams",
-                tasks: [
-                    "Deep dive into the Event Loop phases and process.nextTick vs setImmediate.",
-                    "Practice implementing Node.js Streams for handling large data sets."
-                ]
-            },
-            {
-                day: 2,
-                focus: "Advanced MongoDB & Indexing",
-                tasks: [
-                    "Study Compound Indexes, TTL Indexes, and Text Indexes.",
-                    "Practice writing complex Aggregation pipelines and using the.explain('executionStats') method."
-                ]
-            },
-            {
-                day: 3,
-                focus: "Caching & Redis Strategies",
-                tasks: [
-                    "Read about Redis data types beyond strings (Sets, Hashes, Sorted Sets).",
-                    "Implement a Redis-based rate limiter or a caching layer for a sample API."
-                ]
-            },
-            {
-                day: 4,
-                focus: "System Design & Microservices",
-                tasks: [
-                    "Study Microservices communication patterns (Synchronous vs Asynchronous).",
-                    "Learn about the API Gateway pattern and Circuit Breakers."
-                ]
-            },
-            {
-                day: 5,
-                focus: "Message Queues & DevOps Basics",
-                tasks: [
-                    "Watch introductory tutorials on RabbitMQ or Kafka.",
-                    "Understand containerization basics and Docker fundamentals."
-                ]
-            },
-            {
-                day: 6,
-                focus: "Advanced Database & Architecture",
-                tasks: [
-                    "Deep dive into database sharding, replication, and consistency models.",
-                    "Study API Gateway patterns and load balancing strategies."
-                ]
-            },
-            {
-                day: 7,
-                focus: "Mock Interview & Deep Dive",
-                tasks: [
-                    "Conduct a comprehensive system design mock interview.",
-                    "Review all key concepts and ensure mastery of technical topics."
-                ]
-            }
-        ]
-    };
+    const {report, loading} = useInteview();
+    const {interviewId} = useParams()
 
     const [activeSection, setActiveSection] = useState("roadmap");
     const [expandedQuestion, setExpandedQuestion] = useState(null);
+
+    if(loading || !report) {
+        return <div className="loading">Loading interview report...</div>;
+    }
 
     return (
         <div className="interview-container">
@@ -105,7 +21,7 @@ const Interview = () => {
                 <h1>Interview Preparation Plan</h1>
                 <div className="match-score">
                     <span className="score-label">Match Score</span>
-                    <span className="score-value">{interviewData.matchScore}%</span>
+                    <span className="score-value">{report?.matchScore}%</span>
                 </div>
             </div>
 
@@ -142,7 +58,7 @@ const Interview = () => {
                         <div className="content-section">
                             <h2 className="section-title">Technical Questions</h2>
                             <div className="questions-list">
-                                {interviewData.technicalQuestions.map((q, index) => (
+                                {report?.technicalQuestions?.map((q, index) => (
                                     <div
                                         key={index}
                                         className="question-card"
@@ -182,7 +98,7 @@ const Interview = () => {
                         <div className="content-section">
                             <h2 className="section-title">Behavioral Questions</h2>
                             <div className="questions-list">
-                                {interviewData.behavioralQuestions.map((q, index) => (
+                                {report?.behavioralQuestions?.map((q, index) => (
                                     <div
                                         key={index}
                                         className="question-card"
@@ -226,13 +142,13 @@ const Interview = () => {
                             </div>
                             <div className="timeline-wrapper">
                                 <div className="timeline">
-                                    {interviewData.preparationPlan.map((plan, index) => (
+                                    {report?.preparationPlan?.map((plan, index) => (
                                         <div key={index} className="timeline-item">
                                             <div className="timeline-marker">
                                                 <div className="timeline-circle">
                                                     <span>Day {plan.day}</span>
                                                 </div>
-                                                {index !== interviewData.preparationPlan.length - 1 && (
+                                                {index !== (report?.preparationPlan?.length ?? 0) - 1 && (
                                                     <div className="timeline-line"></div>
                                                 )}
                                             </div>
@@ -258,7 +174,7 @@ const Interview = () => {
                         <div className="sidebar-header">MATCH SCORE</div>
                         <div className="match-score">
                             <span className="score-label">Match</span>
-                            <span className="score-value">{interviewData.matchScore}</span>
+                            <span className="score-value">{report?.matchScore}</span>
                         </div>
                         <p className="match-score-text">Strong match for this role</p>
                     </div>
@@ -266,16 +182,12 @@ const Interview = () => {
                     <div className="skill-gaps-section">
                         <h3 className="sidebar-title">Skill Gaps</h3>
                         <div className="skill-badges">
-                            {interviewData.skillGaps.map((gap, index) => (
+                            {report?.skillGaps?.map((gap, index) => (
                                 <button key={index} className="skill-badge">
                                     {gap.skill}
                                 </button>
                             ))}
                         </div>
-                    </div>
-
-                    <div className="event-loop-section">
-                        <button className="event-loop-btn">Event loop</button>
                     </div>
                 </aside>
             </div>

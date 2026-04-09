@@ -1,7 +1,37 @@
-import React from "react";
+import React, {useState, useRef} from "react";
 import "../styles/home.scss";
+import { useInteview } from "../hooks/useInterview";
+import { useNavigate } from "react-router";
 
 const Home = () => {
+
+    const {loading, generateReport, reports} = useInteview()
+    const [jobDescription, setJobDescription] = useState("")
+    const [selfDescription, setSelfDescription] = useState("")
+    const resumeInputRef = useRef()
+
+    const navigate = useNavigate()
+
+    const handleGenerateReport = async () => {
+        const resumeFile = resumeInputRef.current.files[0]
+        try {
+            const data = await generateReport({jobDescription, selfDescription, resumeFile})
+            if(data && data._id) {
+                navigate(`/interview/${data._id}`)
+            }
+        } catch (error) {
+            console.error("Error generating report:", error)
+        }
+    }
+
+    if(loading){
+        return (
+            <main className="loading-screen">
+                <h1>Generating Your Interview Strategy...</h1>
+            </main>
+        )
+    }
+
     return (
         <main className="home">
             <div className="interview-card">
@@ -17,6 +47,7 @@ const Home = () => {
                             <span className="badge badge--required">REQUIRED</span>
                         </div>
                         <textarea
+                            onChange={(e)=>{setJobDescription(e.target.value)}}
                             id="jobDescription"
                             name="jobDescription"
                             className="textarea"
@@ -42,6 +73,7 @@ const Home = () => {
                                     <small>PDF or DOCX (Max 5MB)</small>
                                 </label>
                                 <input
+                                    ref={resumeInputRef}
                                     hidden
                                     type="file"
                                     id="resume"
@@ -55,6 +87,7 @@ const Home = () => {
                             <div className="self-description-box">
                                 <label htmlFor="selfDescription">Quick Self Description</label>
                                 <textarea
+                                    onChange={(e)=>{setSelfDescription(e.target.value)}}
                                     id="selfDescription"
                                     name="selfDescription"
                                     className="textarea"
@@ -72,9 +105,25 @@ const Home = () => {
 
                 <div className="interview-card__footer">
                     <div className="footer-info">AI-Powered Strategy Generation • Approx 30s</div>
-                    <button className="generate-btn">★ Generate My Interview Strategy</button>
+                    <button onClick={handleGenerateReport} className="generate-btn">Generate My Interview Strategy</button>
                 </div>
             </div>
+
+            {reports.length > 0 && (
+                <div className="interview-reports">
+                    <h2>Previous Interview Reports</h2>
+                    <div className="reports-list">
+                        {reports.map((report) => (
+                            <div key={report._id} className="report-card" onClick={() => navigate(`/interview/${report._id}`)}>
+                                <h3>{report.title}</h3>
+                                <p className="job-description">{report.jobDescription?.substring(0, 100)}...</p>
+                                <p className="match-score-report">Match Score: {report.matchScore}%</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
 
             <footer className="page-footer">
                 <a href="#">Privacy Policy</a>
